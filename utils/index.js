@@ -1,10 +1,23 @@
-const { customAlphabet } = require("nanoid");
-const alphabet =
-  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-const nanoid = customAlphabet(alphabet, 6);
+const customRandomAlphabet = (alphabet, N) => {
+  if (N <= 0) {
+    throw new Error("N must be greater than 0");
+  }
 
-const generateShortURL = () => {
-  return nanoid();
+  const alphabetLength = alphabet.length;
+  let customAlphabetString = "";
+
+  for (let i = 0; i < N; i++) {
+    const randomIndex = Math.floor(Math.random() * alphabetLength);
+    customAlphabetString += alphabet[randomIndex];
+  }
+
+  return customAlphabetString;
 };
 
-module.exports = { generateShortURL };
+const alphabet =
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const N = process.env.RANDOM_N || 6;
+
+export const generateShortURL = () => {
+  return customRandomAlphabet(alphabet, N);
+};

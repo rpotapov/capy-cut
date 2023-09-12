@@ -1,16 +1,16 @@
-const { MongoClient } = require("mongodb");
+import { MongoClient } from "mongodb";
+import dotenv from "dotenv";
+dotenv.config();
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_USER_PASSWORD}@cluster0.x1iipx0.mongodb.net/?retryWrites=true&w=majority`;
-const client = new MongoClient(uri);
+export const client = new MongoClient(uri);
 
-async function connectDB() {
+export const connectDB = async () => {
   try {
     await client.connect();
-    console.log("Підключено до бази даних MongoDB");
+    console.log("Connected to MongoDB database ");
   } catch (error) {
-    console.error("Помилка підключення до бази даних:", error.message);
+    console.error("Database connection error: ", error.message);
     process.exit(1);
   }
-}
-
-module.exports = { client, connectDB };
+};

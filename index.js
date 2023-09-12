@@ -1,11 +1,12 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const app = express();
-const { connectDB } = require("./config/db");
-const { insertURL, findAllURLs, findURL } = require("./models/urlModel");
-const { generateShortURL } = require("./utils");
+import express from "express";
+import cors from "cors";
+import { connectDB } from "./config/db.js";
+import { insertURL, findAllURLs, findURL } from "./models/urlModel.js";
+import { generateShortURL } from "./utils/index.js";
+
 const port = process.env.PORT || 5000;
+
+const app = express();
 
 app.use(cors());
 connectDB();
@@ -23,30 +24,29 @@ app.post("/api/shorten", async (req, res) => {
     res.json(newURL);
   } catch (error) {
     console.error(error.message);
-    res.status(500).json({ message: "Помилка сервера" });
+    res.status(500).json({ message: `Server error: ${error.message}` });
   }
 });
 
 app.post("/api/checkUrl", async (req, res) => {
   try {
     const { originalURL } = req.body;
-    console.log("==>", req.body);
-    let existingURL = await findURL({ originalURLSearch: originalURL });
+    const existingURL = await findURL({ originalURLSearch: originalURL });
 
     if (existingURL) {
       return res.status(200).json({
-        message: "Такий Short URL вже існує",
+        message: "This URL already exists",
         url: existingURL,
       });
     } else {
       return res.status(200).json({
-        message: "Такий Short URL не існує",
+        message: "SNo such URL exists",
         url: null,
       });
     }
   } catch (error) {
-    console.error("Помилка при перевірці URL:", error.message);
-    res.status(500).json({ message: "Помилка сервера" });
+    console.error("Error validating URL: ", error.message);
+    res.status(500).json({ message: `Server error: ${error.message}` });
   }
 });
 
@@ -55,28 +55,25 @@ app.get("/api/urls", async (req, res) => {
     const urls = await findAllURLs();
     res.json(urls);
   } catch (error) {
-    console.error("Помилка при отриманні URL:", error.message);
-    res.status(500).json({ message: "Помилка сервера" });
+    console.error("Error getting URL: ", error.message);
+    res.status(500).json({ message: `Server error: ${error.message}` });
   }
 });
 
-app.get("/:shortURL", async (req, res) => {
+app.get("/api/redirect/:shortUrl", async (req, res) => {
+  console.log("here redirect");
   try {
-    const { shortURL } = req.params;
-    const response = await findURL({ shortURLSearch: shortURL });
-    console.log("originalURL ===>>>", response.originalURL);
+    const response = await findURL({ shortURLSearch: req.params.shortUrl });
     if (response?.originalURL) {
-      res.redirect(response.originalURL);
+      res.json({ url: response.originalURL });
     } else {
-      res.status(404).json({ message: "Short URL not found" });
+      res.json(response || { message: "Not found" });
     }
-  } catch (e) {}
-});
-
-app.get("/api", (req, res) => {
-  res.json({ message: "Hello from server!" });
+  } catch (e) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 });
 
 app.listen(port, () => {
-  console.log(`Сервер запущено на порту ${port}`);
+  console.log(`The server is started on the port ${port}`);
 });
