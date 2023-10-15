@@ -1,4 +1,4 @@
-import { client } from "../config/db.js";
+import { client, client_post } from "../config/db.js";
 
 const urlCollectionName = "urls";
 
@@ -58,6 +58,31 @@ export const findAllURLs = async () => {
     return urls;
   } catch (error) {
     console.error("Error getting URL: ", error.message);
+    throw error;
+  }
+};
+
+export const getPosts = async () => {
+  try {
+    const database = client_post.db("post-react");
+    const urlsCollection = database.collection("posts");
+    const urls = await urlsCollection.find({}).toArray();
+    return urls;
+  } catch (error) {
+    console.error("Error getting POSTS: ", error.message);
+    throw error;
+  }
+};
+
+export const addPost = async (post) => {
+  try {
+    const database = client_post.db("post-react");
+    const urlsCollection = database.collection("posts");
+    const result = await urlsCollection.insertOne(post);
+    const { insertedId } = result;
+    return { ...post, _id: insertedId };
+  } catch (error) {
+    console.error("Error saving URL: ", error.message);
     throw error;
   }
 };

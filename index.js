@@ -1,7 +1,13 @@
 import express from "express";
 import cors from "cors";
-import { connectDB } from "./config/db.js";
-import { insertURL, findAllURLs, findURL } from "./models/urlModel.js";
+import { connectDB, connectDB_POST } from "./config/db.js";
+import {
+  insertURL,
+  findAllURLs,
+  findURL,
+  getPosts,
+  addPost,
+} from "./models/urlModel.js";
 import { generateShortURL } from "./utils/index.js";
 
 const port = process.env.PORT || 5000;
@@ -10,6 +16,7 @@ const app = express();
 
 app.use(cors());
 connectDB();
+connectDB_POST();
 app.use(express.json());
 
 app.post("/api/shorten", async (req, res) => {
@@ -71,6 +78,27 @@ app.get("/api/redirect/:shortUrl", async (req, res) => {
     }
   } catch (e) {
     res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+app.get("/get_posts", async (req, res) => {
+  try {
+    const posts = await getPosts();
+
+    res.json(posts);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: `Server error: ${error.message}` });
+  }
+});
+
+app.post("/add_post", async (req, res) => {
+  try {
+    const post = await addPost(req.body);
+    res.json(post);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: `Server error: ${error.message}` });
   }
 });
 
