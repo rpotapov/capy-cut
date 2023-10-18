@@ -7,8 +7,10 @@ import {
   findURL,
   getPosts,
   addPost,
+  getComments,
+  addComment,
 } from "./models/urlModel.js";
-import { generateShortURL } from "./utils/index.js";
+import { generateShortURL, combinePostsAndComments } from "./utils/index.js";
 
 const port = process.env.PORT || 5000;
 
@@ -68,7 +70,6 @@ app.get("/api/urls", async (req, res) => {
 });
 
 app.get("/api/redirect/:shortUrl", async (req, res) => {
-  console.log("here redirect");
   try {
     const response = await findURL({ shortURLSearch: req.params.shortUrl });
     if (response?.originalURL) {
@@ -84,8 +85,10 @@ app.get("/api/redirect/:shortUrl", async (req, res) => {
 app.get("/get_posts", async (req, res) => {
   try {
     const posts = await getPosts();
+    const comments = await getComments();
 
-    res.json(posts);
+    const postsWithComments = combinePostsAndComments(posts, comments);
+    res.json(postsWithComments);
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: `Server error: ${error.message}` });
@@ -96,6 +99,27 @@ app.post("/add_post", async (req, res) => {
   try {
     const post = await addPost(req.body);
     res.json(post);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: `Server error: ${error.message}` });
+  }
+});
+
+app.get("/get_comments", async (req, res) => {
+  try {
+    const comments = await getComments();
+
+    res.json(comments);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: `Server error: ${error.message}` });
+  }
+});
+
+app.post("/add_comment", async (req, res) => {
+  try {
+    const comment = await addComment(req.body);
+    res.json(comment);
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: `Server error: ${error.message}` });

@@ -26,13 +26,6 @@ export const findURL = async ({
     const database = client.db("shorten-urls");
     const urlsCollection = database.collection(urlCollectionName);
     if (shortURLSearch) {
-      console.log(
-        "shortURLSearch",
-        await urlsCollection.findOne(
-          { shortURL: shortURLSearch },
-          { originalURL: 1, shortURL: 1, _id: 0 }
-        )
-      );
       return await urlsCollection.findOne(
         { shortURL: shortURLSearch },
         { originalURL: 1, shortURL: 1, _id: 0 }
@@ -67,7 +60,7 @@ export const getPosts = async () => {
     const database = client_post.db("post-react");
     const urlsCollection = database.collection("posts");
     const urls = await urlsCollection.find({}).toArray();
-    return urls;
+    return urls.reverse();
   } catch (error) {
     console.error("Error getting POSTS: ", error.message);
     throw error;
@@ -83,6 +76,31 @@ export const addPost = async (post) => {
     return { ...post, _id: insertedId };
   } catch (error) {
     console.error("Error saving URL: ", error.message);
+    throw error;
+  }
+};
+
+export const getComments = async () => {
+  try {
+    const database = client_post.db("post-react");
+    const urlsCollection = database.collection("comments");
+    const comments = await urlsCollection.find({}).toArray();
+    return comments;
+  } catch (error) {
+    console.error("Error getting comments: ", error.message);
+    throw error;
+  }
+};
+
+export const addComment = async (comment) => {
+  try {
+    const database = client_post.db("post-react");
+    const urlsCollection = database.collection("comments");
+    const result = await urlsCollection.insertOne(comment);
+    const { insertedId } = result;
+    return { comment, _id: insertedId };
+  } catch (error) {
+    console.error("Error getting comments: ", error.message);
     throw error;
   }
 };

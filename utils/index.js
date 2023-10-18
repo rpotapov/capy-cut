@@ -21,3 +21,27 @@ const N = process.env.RANDOM_N || 6;
 export const generateShortURL = () => {
   return customRandomAlphabet(alphabet, N);
 };
+
+export const combinePostsAndComments = (posts, comments) => {
+  const commentsByPostId = {};
+
+  comments.forEach((comment) => {
+    const postId = comment.relatedId;
+
+    if (!commentsByPostId[postId]) {
+      commentsByPostId[postId] = [];
+    }
+    commentsByPostId[postId].push(comment);
+  });
+
+  posts.forEach((post) => {
+    const postId = post._id;
+    if (commentsByPostId[postId]) {
+      post.comments = commentsByPostId[postId].reverse();
+    } else {
+      post.comments = [];
+    }
+  });
+
+  return posts;
+};
