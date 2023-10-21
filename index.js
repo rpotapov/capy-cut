@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import NodeCache from "node-cache";
 import { connectDB, connectDB_POST } from "./config/db.js";
 import {
   insertURL,
@@ -20,6 +21,23 @@ app.use(cors());
 connectDB();
 connectDB_POST();
 app.use(express.json());
+
+const myCache = new NodeCache();
+
+const cacheData = async () => {
+  myCache.flushAll();
+  try {
+    const posts = await getPosts();
+    const comments = await getComments();
+
+    const postsWithComments = combinePostsAndComments(posts, comments);
+    myCache.set("cache", postsWithComments);
+  } catch (error) {
+    console.error("caching error", error.message);
+  }
+};
+
+cacheData();
 
 app.post("/api/shorten", async (req, res) => {
   try {
@@ -83,33 +101,24 @@ app.get("/api/redirect/:shortUrl", async (req, res) => {
 });
 
 app.get("/get_posts", async (req, res) => {
-  try {
-    const posts = await getPosts();
-    const comments = await getComments();
+  // try {
+  //   const posts = await getPosts();
+  //   const comments = await getComments();
 
-    const postsWithComments = combinePostsAndComments(posts, comments);
-    res.json(postsWithComments);
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: `Server error: ${error.message}` });
-  }
+  //   const postsWithComments = combinePostsAndComments(posts, comments);
+  //   res.json(postsWithComments);
+  // } catch (error) {
+  //   console.error(error.message);
+  //   res.status(500).json({ message: `Server error: ${error.message}` });
+  // }
+  res.status(200).json(myCache.get("cache"));
 });
 
 app.post("/add_post", async (req, res) => {
   try {
     const post = await addPost(req.body);
     res.json(post);
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: `Server error: ${error.message}` });
-  }
-});
-
-app.get("/get_comments", async (req, res) => {
-  try {
-    const comments = await getComments();
-
-    res.json(comments);
+    cacheData();
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: `Server error: ${error.message}` });
@@ -120,6 +129,7 @@ app.post("/add_comment", async (req, res) => {
   try {
     const comment = await addComment(req.body);
     res.json(comment);
+    cacheData();
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: `Server error: ${error.message}` });
