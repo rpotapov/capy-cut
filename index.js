@@ -32,6 +32,7 @@ const cacheData = async () => {
 
     const postsWithComments = combinePostsAndComments(posts, comments);
     myCache.set("cache", postsWithComments);
+    console.log("new cache", myCache.get("cache"));
   } catch (error) {
     console.error("caching error", error.message);
   }
@@ -139,3 +140,7 @@ app.post("/add_comment", async (req, res) => {
 app.listen(port, () => {
   console.log(`The server is started on the port ${port}`);
 });
+
+setTimeout(() => {
+  cacheData();
+}, 10 * 60 * 1000);
