@@ -7,6 +7,8 @@ const url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_USER_PASSWORD
 export const client = new MongoClient(uri);
 export const client_post = new MongoClient(url);
 
+console.log("hello world");
+
 export const connectDB = async () => {
   try {
     await client.connect();
